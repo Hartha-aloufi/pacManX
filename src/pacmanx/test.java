@@ -25,11 +25,8 @@ import javax.swing.JOptionPane;
  */
 public class test {
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
-        ArrayList<Line> arr;
-        ObjectInputStream reader = new ObjectInputStream(new FileInputStream("src/pacmanx/maps lines/testWalles.abc"));
-        arr = (ArrayList<Line>) reader.readObject();
-        for(Line x  :arr){
-            System.out.println(x.a.x + " " + x.b.y);
+        for (int i = 0; i < 20; i++) {
+            System.out.println((int)(Math.random() * 10));
         }
     }
 }

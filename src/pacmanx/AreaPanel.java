@@ -45,7 +45,7 @@ public class AreaPanel extends JPanel {
     private static int numberOfPoints; // pair of points will represent a single line "wall"
     private int wallPosX, wallPosY;
     private int numberOfChips; // number of items which the packman should eat
-
+    private int numberOfMovesInSameDir;
     private int startAngle, endAngle, prevStartAngle, prevEndAngle; // packMan factors
     private int packManPosX, packManPosY, prevPackManPosX, prevPackManPosY, direction;// packMan factors
     private boolean isStarted, isRunning; // starting of the game, run and puse
@@ -87,7 +87,8 @@ public class AreaPanel extends JPanel {
         direction = 1;
         b = 0;
         isRunning = false;
-        
+
+        Enemy.init();
     }
 
     public void setImage(BufferedImage image) {
@@ -144,11 +145,30 @@ public class AreaPanel extends JPanel {
 
                 Point cleaner = chips[chipsID[p.x][p.y]];
                 grphcs.fillOval(cleaner.x - 1, cleaner.y - 1, chipsSize + 1, chipsSize + 1);
-                
 
                 chips[chipsID[p.x][p.y]] = null;
                 numberOfChips--;
                 setStatus();
+            }
+
+            for (int i = 0; i < Enemy.numberOfEnemys; i++) {
+                int x = Enemy.position[i].x;
+                int y = Enemy.position[i].y;
+
+                grphcs.setColor(Color.BLACK);
+                grphcs.fillRect(x - 1, y - 1, Enemy.size + 2, Enemy.size + 2);
+                grphcs.setColor(Enemy.color[i]);
+                grphcs.fillRect(x, y, Enemy.size, Enemy.size);
+
+                if ((p = checkChips(x - 1, y - 1, Enemy.size + 2, Enemy.size + 2)) != null) {
+                    Point cleaner = chips[chipsID[p.x][p.y]];
+
+                    grphcs.setColor(Color.BLACK);
+                    grphcs.fillOval(cleaner.x - 1, cleaner.y - 1, chipsSize + 1, chipsSize + 1);
+                    grphcs.setColor(Color.RED);
+                    grphcs.fillOval(cleaner.x, cleaner.y, chipsSize, chipsSize);
+
+                }
             }
 
         }
@@ -158,7 +178,7 @@ public class AreaPanel extends JPanel {
     private Point checkChips(int x, int y, int hSize, int vSize) {
         for (int i = 0; i <= hSize; i++) {
             for (int j = 0; j <= vSize; j++) {
-                if (chipsID[x + i][y + j] != 0 && chips[chipsID[x+i][y+j]] != null) {
+                if (chipsID[x + i][y + j] != 0 && chips[chipsID[x + i][y + j]] != null) {
                     return new Point(x + i, y + j);
                 }
             }
@@ -176,48 +196,31 @@ public class AreaPanel extends JPanel {
     }
 
     private void movePacMan() {
-        moveThread = new Thread() {
 
-            @Override
-            public void run() {
-
-                while (isRunning) {
-                    try {
-                        // before make any move we check if this move is valid "boundries of the frame, walls"
-                        switch (direction) {
-                            case 1:
-                                if (isValidMove(packManPosX + 2, packManPosY)) {
-                                    packManPosX += 2;
-                                }
-                                break;
-                                
-                            case 2:
-                                if (isValidMove(packManPosX, packManPosY + 2)) {
-                                    packManPosY += 2;
-                                }
-                                break;
-                            case 3:
-                                if (isValidMove(packManPosX - 2, packManPosY)) {
-                                    packManPosX -= 2;
-                                }
-                                break;
-                            case 4:
-                                if (isValidMove(packManPosX, packManPosY - 2)) {
-                                    packManPosY -= 2;
-                                }
-                                break;
-                        }
-                        paint(getGraphics());
-                        Thread.sleep(2);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(AreaPanel.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+        // before make any move we check if this move is valid "boundries of the frame, walls"
+        switch (direction) {
+            case 1:
+                if (isValidMove(packManPosX + 2, packManPosY)) {
+                    packManPosX += 2;
                 }
-            }
+                break;
 
-        };
-
-        moveThread.start();
+            case 2:
+                if (isValidMove(packManPosX, packManPosY + 2)) {
+                    packManPosY += 2;
+                }
+                break;
+            case 3:
+                if (isValidMove(packManPosX - 2, packManPosY)) {
+                    packManPosX -= 2;
+                }
+                break;
+            case 4:
+                if (isValidMove(packManPosX, packManPosY - 2)) {
+                    packManPosY -= 2;
+                }
+                break;
+        }
     }
 
     // the validity of moveing
@@ -227,31 +230,20 @@ public class AreaPanel extends JPanel {
 
     // move the mouth by increasing and decreasing the arc size
     private void moveMouth() {
-        mouthThread = new Thread() {
-            public void run() {
-                try {
-                    while (isRunning) {
-                        if (endAngle >= 0) {
-                            endAngle++;
-                        } else {
-                            endAngle--;
-                        }
+        if (endAngle >= 0) {
+            endAngle += 5;
+        } else {
+            endAngle += -5;
+        }
 
-                        if (Math.abs(endAngle) == 355) {
-                            if (endAngle >= 0) {
-                                endAngle = 240;
-                            } else {
-                                endAngle = -240;
-                            }
-                        }
-                        Thread.sleep(2);
-                    }
-                } catch (Exception e) {
-                }
+        if (Math.abs(endAngle) >= 355) {
+            if (endAngle >= 0) {
+                endAngle = 240;
+            } else {
+                endAngle = -240;
             }
-        };
+        }
 
-        mouthThread.start();
     }
 
     // check if there is a collision between the packMan and the walls
@@ -382,9 +374,28 @@ public class AreaPanel extends JPanel {
         paintWalls();
         BFS(); // mark all pixles in the game area by reached or unreached
         fillChips(); // put chips in some reached pixles, we wouldn't put the chips in any unreached pixles
+        Enemy.setPositions(isReached); // set Enemies initial positions
+        
+        moveThread = new Thread() {
 
-        movePacMan();
-        moveMouth();
+            @Override
+            public void run() {
+                try {
+                    while (isRunning) {
+                        moveMouth();
+                        movePacMan();
+                        moveEnemies();
+                        paint(getGraphics());
+                        Thread.sleep(3);
+                    }
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AreaPanel.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        };
+
+        moveThread.start();
     }
 
     public void terminate() {
@@ -392,7 +403,51 @@ public class AreaPanel extends JPanel {
     }
 
     /////////////////////////////////////////////////////
+    public void moveEnemies() {
+        for (int i = 0; i < Enemy.numberOfEnemys; i++) {
+            switch (Enemy.dir[i]) {
+                case 1:
+                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x + 1, Enemy.position[i].y)) {
+                        Enemy.position[i].x++;
+                        numberOfMovesInSameDir++;
+                    } else {
+                        Enemy.dir[i] = 1 + (int) (Math.random() * 4);
+                        numberOfMovesInSameDir = 0;
+                    }
+                    break;
+                case 2:
+                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x, Enemy.position[i].y + 1)) {
+                        Enemy.position[i].y++;
+                        numberOfMovesInSameDir++;
+                    } else {
+                        Enemy.dir[i] = 3;
+                        numberOfMovesInSameDir = 0;
+                    }
+                    break;
+                case 3:
+                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x - 1, Enemy.position[i].y)) {
+                        Enemy.position[i].x--;
+                        numberOfMovesInSameDir++;
+                    } else {
+                        Enemy.dir[i] = 4;
+                        numberOfMovesInSameDir = 0;
+                    }
+                    break;
+                case 4:
+                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x, Enemy.position[i].y - 1)) {
+                        Enemy.position[i].y--;
+                        numberOfMovesInSameDir++;
+                    } else {
+                        Enemy.dir[i] = 1;
+                        numberOfMovesInSameDir = 0;
+                    }
+                    break;
 
+            }
+
+        }
+
+    }
 
     private class KeyHandler extends KeyAdapter {
 
@@ -442,3 +497,39 @@ public class AreaPanel extends JPanel {
 
 }
 
+class Enemy {
+
+    static final int numberOfEnemys = 3, size = 30;
+    static Point position[];
+    static Color color[];
+    static int dir[];
+
+    public static void init() {
+        position = new Point[numberOfEnemys];
+        color = new Color[numberOfEnemys];
+        dir = new int[numberOfEnemys];
+
+        color[0] = Color.WHITE;
+        color[1] = Color.orange;
+        color[2] = new Color(203, 79, 221);
+
+        dir[0] = dir[1] = dir[2] = 1;
+    }
+
+    public static void setPositions(boolean isReach[][]) {
+
+        for (int i = 0; i < numberOfEnemys; i++) {
+
+            while (true) {
+                int x = (int) (Math.random() * 600);
+                int y = (int) (Math.random() * 600);
+
+                if (isReach[x][y]) {
+                    position[i] = new Point(x, y);
+                    break;
+                }
+            }
+
+        }
+    }
+}
