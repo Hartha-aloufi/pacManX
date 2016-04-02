@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -25,8 +26,10 @@ import javax.swing.JOptionPane;
  */
 public class test {
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
-        for (int i = 0; i < 20; i++) {
-            System.out.println((int)(Math.random() * 10));
+        Random rnd = new Random();
+        for (int i = 0; i < 100; i++) {
+            System.out.println(rnd.nextInt(4));
         }
     }
+    
 }

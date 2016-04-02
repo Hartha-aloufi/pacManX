@@ -39,6 +39,7 @@ public class AreaPanel extends JPanel {
     private static final int packManSize = 30;
     private static final int maxChips = 300;
     private static final int chipsSize = 4;
+    private static Random rnd = new Random();
 
     private Color backGrColor;
     private BufferedImage image; // at first we paint on this image then draw the image on the panel
@@ -60,7 +61,7 @@ public class AreaPanel extends JPanel {
     private ArrayList<Line> wallList;
     int b;
 
-    private Thread moveThread, mouthThread;
+    private Thread moveThread;
 
     public AreaPanel() {
         init();
@@ -155,11 +156,20 @@ public class AreaPanel extends JPanel {
                 int x = Enemy.position[i].x;
                 int y = Enemy.position[i].y;
 
+                // remove the previous one
                 grphcs.setColor(Color.BLACK);
                 grphcs.fillRect(x - 1, y - 1, Enemy.size + 2, Enemy.size + 2);
-                grphcs.setColor(Enemy.color[i]);
-                grphcs.fillRect(x, y, Enemy.size, Enemy.size);
 
+                // repaint the enemy
+                grphcs.setColor(Enemy.color[i]);
+                grphcs.fillRoundRect(x, y, Enemy.size, Enemy.size, Enemy.roundangle, Enemy.roundangle);
+
+                // paint eye
+                grphcs.setColor(Color.BLACK);
+                grphcs.fillOval(x + 7, y + 7, 3, 3);
+                grphcs.fillOval(x + 20, y + 7, 3, 3);
+
+                grphcs.fillRect(x + 7, y + 20, 15, 5);
                 if ((p = checkChips(x - 1, y - 1, Enemy.size + 2, Enemy.size + 2)) != null) {
                     Point cleaner = chips[chipsID[p.x][p.y]];
 
@@ -171,8 +181,30 @@ public class AreaPanel extends JPanel {
                 }
             }
 
+            if (checkIsGameOver()) {
+                isRunning = false;
+                //grphcs.setColor(Color.BLACK);
+                //grphcs.fillRect(0, 0, getWidth(), getHeight());
+                grphcs.drawImage(new ImageIcon("src/pacmanx/game over.jpg").getImage(), 80, 100, null);
+            }
+
+            if (numberOfChips == 0) {
+                isRunning = false;
+                grphcs.drawImage(new ImageIcon("src/pacmanx/you won.jpg").getImage(), 0, 100, null);
+            }
         }
 
+    }
+
+    private boolean checkIsGameOver() {
+        for (int i = 0; i < 28; i++) {
+            if (Enemy.isGameOver(packManPosX + i, packManPosY) || Enemy.isGameOver(packManPosX + i, packManPosY + packManSize - 2)
+                    || Enemy.isGameOver(packManPosX, packManPosY + i) || Enemy.isGameOver(packManPosX + packManSize - 2, packManPosY + i)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Point checkChips(int x, int y, int hSize, int vSize) {
@@ -375,7 +407,12 @@ public class AreaPanel extends JPanel {
         BFS(); // mark all pixles in the game area by reached or unreached
         fillChips(); // put chips in some reached pixles, we wouldn't put the chips in any unreached pixles
         Enemy.setPositions(isReached); // set Enemies initial positions
-        
+
+        start();
+    }
+
+    public void start() {
+
         moveThread = new Thread() {
 
             @Override
@@ -407,38 +444,38 @@ public class AreaPanel extends JPanel {
         for (int i = 0; i < Enemy.numberOfEnemys; i++) {
             switch (Enemy.dir[i]) {
                 case 1:
-                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x + 1, Enemy.position[i].y)) {
+                    if (numberOfMovesInSameDir < 50 + Math.random() * 300 && isValidMove(Enemy.position[i].x + 1, Enemy.position[i].y)) {
                         Enemy.position[i].x++;
                         numberOfMovesInSameDir++;
                     } else {
-                        Enemy.dir[i] = 1 + (int) (Math.random() * 4);
+                        Enemy.dir[i] = 1 + rnd.nextInt(4);
                         numberOfMovesInSameDir = 0;
                     }
                     break;
                 case 2:
-                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x, Enemy.position[i].y + 1)) {
+                    if (numberOfMovesInSameDir < 50 + Math.random() * 300 && isValidMove(Enemy.position[i].x, Enemy.position[i].y + 1)) {
                         Enemy.position[i].y++;
                         numberOfMovesInSameDir++;
                     } else {
-                        Enemy.dir[i] = 3;
+                        Enemy.dir[i] = 1 + rnd.nextInt(4);
                         numberOfMovesInSameDir = 0;
                     }
                     break;
                 case 3:
-                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x - 1, Enemy.position[i].y)) {
+                    if (numberOfMovesInSameDir < 50 + Math.random() * 300 && isValidMove(Enemy.position[i].x - 1, Enemy.position[i].y)) {
                         Enemy.position[i].x--;
                         numberOfMovesInSameDir++;
                     } else {
-                        Enemy.dir[i] = 4;
+                        Enemy.dir[i] = 1 + rnd.nextInt(4);
                         numberOfMovesInSameDir = 0;
                     }
                     break;
                 case 4:
-                    if (numberOfMovesInSameDir < 100 + Math.random() * 300 && isValidMove(Enemy.position[i].x, Enemy.position[i].y - 1)) {
+                    if (numberOfMovesInSameDir < 50 + Math.random() * 300 && isValidMove(Enemy.position[i].x, Enemy.position[i].y - 1)) {
                         Enemy.position[i].y--;
                         numberOfMovesInSameDir++;
                     } else {
-                        Enemy.dir[i] = 1;
+                        Enemy.dir[i] = 1 + rnd.nextInt(4);
                         numberOfMovesInSameDir = 0;
                     }
                     break;
@@ -487,8 +524,7 @@ public class AreaPanel extends JPanel {
                     isRunning = false;
                 } else {
                     isRunning = true;
-                    movePacMan();
-                    moveMouth();
+                    start();
                 }
             }
         }
@@ -499,21 +535,19 @@ public class AreaPanel extends JPanel {
 
 class Enemy {
 
-    static final int numberOfEnemys = 3, size = 30;
+    static final int numberOfEnemys = 5, size = 28;
     static Point position[];
-    static Color color[];
+    static Color color[] = new Color[]{new Color(34, 177, 76), new Color(203, 79, 221), new Color(69, 65, 146), new Color(128, 128, 255), Color.WHITE};
     static int dir[];
+    static int roundangle = 12;
 
     public static void init() {
         position = new Point[numberOfEnemys];
-        color = new Color[numberOfEnemys];
         dir = new int[numberOfEnemys];
 
-        color[0] = Color.WHITE;
-        color[1] = Color.orange;
-        color[2] = new Color(203, 79, 221);
-
-        dir[0] = dir[1] = dir[2] = 1;
+        for (int i = 0; i < numberOfEnemys; i++) {
+            dir[i] = 1 + (int) Math.random() * 3;
+        }
     }
 
     public static void setPositions(boolean isReach[][]) {
@@ -521,8 +555,8 @@ class Enemy {
         for (int i = 0; i < numberOfEnemys; i++) {
 
             while (true) {
-                int x = (int) (Math.random() * 600);
-                int y = (int) (Math.random() * 600);
+                int x = 10 + (int) (Math.random() * 580);
+                int y = 40 + (int) (Math.random() * 450);
 
                 if (isReach[x][y]) {
                     position[i] = new Point(x, y);
@@ -531,5 +565,15 @@ class Enemy {
             }
 
         }
+    }
+
+    static boolean isGameOver(int x, int y) {
+        for (int i = 0; i < numberOfEnemys; i++) {
+            if (x >= position[i].x && x <= position[i].x + size && y >= position[i].y && y <= position[i].y + size) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
