@@ -26,10 +26,7 @@ import javax.swing.JOptionPane;
  */
 public class test {
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
-        Random rnd = new Random();
-        for (int i = 0; i < 100; i++) {
-            System.out.println(rnd.nextInt(4));
-        }
+        System.out.println((int)'=');
     }
     
 }

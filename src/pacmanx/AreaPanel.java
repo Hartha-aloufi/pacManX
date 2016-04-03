@@ -39,8 +39,9 @@ public class AreaPanel extends JPanel {
     private static final int packManSize = 30;
     private static final int maxChips = 300;
     private static final int chipsSize = 4;
+    
+    private int speed = 2; // speed of the game
     private static Random rnd = new Random();
-
     private Color backGrColor;
     private BufferedImage image; // at first we paint on this image then draw the image on the panel
     private static int numberOfPoints; // pair of points will represent a single line "wall"
@@ -151,7 +152,8 @@ public class AreaPanel extends JPanel {
                 numberOfChips--;
                 setStatus();
             }
-
+            
+            // paint enemies
             for (int i = 0; i < Enemy.numberOfEnemys; i++) {
                 int x = Enemy.position[i].x;
                 int y = Enemy.position[i].y;
@@ -169,6 +171,7 @@ public class AreaPanel extends JPanel {
                 grphcs.fillOval(x + 7, y + 7, 3, 3);
                 grphcs.fillOval(x + 20, y + 7, 3, 3);
 
+                // save the chips
                 grphcs.fillRect(x + 7, y + 20, 15, 5);
                 if ((p = checkChips(x - 1, y - 1, Enemy.size + 2, Enemy.size + 2)) != null) {
                     Point cleaner = chips[chipsID[p.x][p.y]];
@@ -196,6 +199,7 @@ public class AreaPanel extends JPanel {
 
     }
 
+    // check all pacman border points with each enemy
     private boolean checkIsGameOver() {
         for (int i = 0; i < 28; i++) {
             if (Enemy.isGameOver(packManPosX + i, packManPosY) || Enemy.isGameOver(packManPosX + i, packManPosY + packManSize - 2)
@@ -207,6 +211,7 @@ public class AreaPanel extends JPanel {
         return false;
     }
 
+    // dose the object painted on any chips
     private Point checkChips(int x, int y, int hSize, int vSize) {
         for (int i = 0; i <= hSize; i++) {
             for (int j = 0; j <= vSize; j++) {
@@ -290,6 +295,7 @@ public class AreaPanel extends JPanel {
         return false;
     }
 
+    // repaint th map walles
     public void paintWalls() {
         Graphics2D g2d = image.createGraphics();
         g2d.setColor(Color.BLACK);
@@ -314,7 +320,8 @@ public class AreaPanel extends JPanel {
             numberOfPoints += 2;
         }
     }
-
+    
+    // fill the map with chips in correct positions ... avoid the closed regions
     private void fillChips() {
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON); // make the shape more smoothly
@@ -329,7 +336,7 @@ public class AreaPanel extends JPanel {
                         }
                     }
                 }
-
+                
                 if (isReached[i][j]) {
                     id++;
 
@@ -351,6 +358,8 @@ public class AreaPanel extends JPanel {
         isStarted = true;
     }
 
+    ///////////////////
+    // bredith first search to mark every cell with reached or un reached by the pacman
     boolean v[][] = new boolean[WIDTH][HEIGHT];
     int dx[] = {1, 0, -1, 0};
     int dy[] = {0, 1, 0, -1};
@@ -423,7 +432,7 @@ public class AreaPanel extends JPanel {
                         movePacMan();
                         moveEnemies();
                         paint(getGraphics());
-                        Thread.sleep(3);
+                        Thread.sleep(speed);
                     }
                 } catch (InterruptedException ex) {
                     Logger.getLogger(AreaPanel.class.getName()).log(Level.SEVERE, null, ex);
@@ -435,6 +444,7 @@ public class AreaPanel extends JPanel {
         moveThread.start();
     }
 
+    // termenate the game
     public void terminate() {
         isRunning = false;
     }
@@ -526,6 +536,15 @@ public class AreaPanel extends JPanel {
                     isRunning = true;
                     start();
                 }
+            }
+            else if(ke.getKeyCode() == 61){
+                if(speed -1 >= 0)
+                    speed--;
+            }
+            
+            else if(ke.getKeyCode() == KeyEvent.VK_MINUS){
+                if(speed < 10)
+                    speed++;
             }
         }
 

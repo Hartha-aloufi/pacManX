@@ -26,7 +26,8 @@ import javax.swing.border.LineBorder;
 
 /**
  *
- * @author harth
+ * @author Hartha al-oufi
+ *  BAU university
  */
 public class luncher extends javax.swing.JFrame {
 
@@ -36,6 +37,7 @@ public class luncher extends javax.swing.JFrame {
      * Creates new form luncher
      */
     public luncher() {
+        setTitle("PacManX");
         initComponents();
         fillComboBox();
     }

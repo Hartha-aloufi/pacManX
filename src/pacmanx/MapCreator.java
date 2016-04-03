@@ -29,6 +29,7 @@ public class MapCreator extends javax.swing.JFrame {
      * Creates new form MapCreator
      */
     public MapCreator() {
+        setTitle("Map Creator");
         initComponents();
         setArrowIcon();
     }
@@ -259,21 +260,7 @@ public class MapCreator extends javax.swing.JFrame {
     private ImageIcon arrow1 = new ImageIcon("src\\pacmanx\\arrow1.jpg");
     private ImageIcon arrow2 = new ImageIcon("src\\pacmanx\\arrow2.jpg");
     private void setArrowIcon() {
-        new Thread(){
-         public void run(){
-             while(true){
-                 try {
-                     iconLabel.setIcon(arrow2);
-                     Thread.sleep(1000);
-                     iconLabel.setIcon(arrow2);
-                    
-                 } catch (InterruptedException ex) {
-                     Logger.getLogger(MapCreator.class.getName()).log(Level.SEVERE, null, ex);
-                 }
-                 
-             }
-         }
-        }.start();
+        iconLabel.setIcon(arrow1);
     }
     
 }
